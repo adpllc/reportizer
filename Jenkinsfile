@@ -39,6 +39,11 @@ pipeline {
                 }
             }
         }
+        stage('Build') {
+            steps {
+                sh "npm run build"
+            }
+        }
         stage('Publish') {
             when {
                 anyOf {

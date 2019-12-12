@@ -1,7 +1,7 @@
 import axios from 'axios';
-import ReportPortalClient from '../src/';
-import { IPostItemRequest, IFinishTestRequest } from '../src/models';
 import { Status } from 'cucumber';
+import ReportPortalClient from '../src/';
+import { IFinishTestRequest, IPostItemRequest } from '../src/models';
 
 jest.mock('axios');
 jest.useFakeTimers();

@@ -1,13 +1,14 @@
 {
   "name": "hammertime-reportify",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple client for ReportPortal.io",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
     "test:ci": "jest --collect-coverage",
-    "lint": "tslint --project ."
+    "lint": "tslint --project .",
+    "build": "tsc"
   },
   "publishConfig": {
     "registry": "http://ihcmartifactory.es.ad.adp.com:8083/artifactory/api/npm/ihcm_localnpm/"
