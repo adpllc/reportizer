@@ -170,10 +170,9 @@ describe('ReportPortalClient', () => {
         `${expectedBaseUrl}/item/${expectedTestItemId}`, expectedFinishTestRequest, expectedRequestConfig);
     });
 
-    it('should update the test of the given ID to be failed if the cucumber status is UNDEFINED', () => {
+    it('should update the test of the given ID to have no status if the cucumber status is UNDEFINED', () => {
       const expectedFinishTestRequest: IFinishTestRequest = {
         end_time: mockTimestamp,
-        status: 'FAILED',
         tags: []
       };
 
@@ -195,21 +194,6 @@ describe('ReportPortalClient', () => {
       const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
 
       sut.finishItem(expectedTestItemId, Status.AMBIGUOUS);
-
-      expect(mockAxios.put).toHaveBeenCalledWith(
-        `${expectedBaseUrl}/item/${expectedTestItemId}`, expectedFinishTestRequest, expectedRequestConfig);
-    });
-
-    it('should update the test of the given ID to be failed if the cucumber status is anything else', () => {
-      const expectedFinishTestRequest: IFinishTestRequest = {
-        end_time: mockTimestamp,
-        status: 'FAILED',
-        tags: []
-      };
-
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
-
-      sut.finishItem(expectedTestItemId, 'NOTASTATUS' as Status);
 
       expect(mockAxios.put).toHaveBeenCalledWith(
         `${expectedBaseUrl}/item/${expectedTestItemId}`, expectedFinishTestRequest, expectedRequestConfig);

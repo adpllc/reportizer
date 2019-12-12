@@ -8,7 +8,6 @@ export default class ReportPortalClient {
     [CucumberStatus.FAILED, 'FAILED'],
     [CucumberStatus.SKIPPED, 'SKIPPED'],
     [CucumberStatus.PENDING, 'FAILED'],
-    [CucumberStatus.UNDEFINED, 'FAILED'],
     [CucumberStatus.AMBIGUOUS, 'FAILED'],
   ]);
 
@@ -46,7 +45,7 @@ export default class ReportPortalClient {
   public async finishItem(itemId: string, status: CucumberStatus) {
     const request: IFinishTestRequest = {
       end_time: Date.now(),
-      status: this.statusMap.get(status) || 'FAILED',
+      status: this.statusMap.get(status) || undefined,
       tags: [],
     };
 
