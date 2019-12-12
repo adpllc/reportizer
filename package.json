@@ -1,6 +1,6 @@
 {
   "name": "hammertime-reportify",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A simple client for ReportPortal.io",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
