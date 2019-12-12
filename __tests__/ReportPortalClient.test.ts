@@ -16,7 +16,7 @@ describe('ReportPortalClient', () => {
 
   const expectedRequestConfig = {
     headers: {
-      Authorization: expectedAuthToken
+      Authorization: `Bearer ${expectedAuthToken}`
     }
   };
 
