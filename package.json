@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
+    "test:ci": "jest --collect-coverage",
     "lint": "tslint --project ."
   },
   "publishConfig": {
