@@ -25,7 +25,7 @@ export default class ReportPortalClient {
       };
     }
 
-  public createItem(testName: string, testDescription: string, testItemType: ItemType) {
+  public createItem(testName: string, testDescription: string, testItemType: ItemType, parentItemId?: string) {
     const request: IPostItemRequest = {
       description: testDescription,
       launch_id: this.launchId,
@@ -37,7 +37,9 @@ export default class ReportPortalClient {
       type: testItemType,
     };
 
-    return axios.post<IReportPortalPostResponse>(`${this.baseUrl}/item`, request, this.requestConfig)
+    const pathSuffix = (parentItemId && `/${parentItemId}`) || '';
+
+    return axios.post<IReportPortalPostResponse>(`${this.baseUrl}/item${pathSuffix}`, request, this.requestConfig)
       .then(response => response.data.id);
   }
 

@@ -42,10 +42,43 @@ describe('ReportPortalClient', () => {
       const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
 
       const actualTestItemId = await sut.createItem(
-        expectedPostTestItemRequest.name, expectedPostTestItemRequest.description, expectedPostTestItemRequest.type);
+        expectedPostTestItemRequest.name,
+        expectedPostTestItemRequest.description,
+        expectedPostTestItemRequest.type);
 
       expect(mockAxios.post).toHaveBeenCalledWith(
         `${expectedBaseUrl}/item`, expectedPostTestItemRequest, expectedRequestConfig);
+
+      expect(actualTestItemId).toEqual(expectedTestItemId);
+    });
+
+    it('should send a request to create a child test item', async () => {
+      const expectedParentItem = 'ParentItem';
+      const expectedPostTestItemRequest: IPostItemRequest = {
+        description: 'Some important test',
+        launch_id: expectedLaunchId,
+        name: 'ImportantTest',
+        parameters: [],
+        retry: false,
+        start_time: mockTimestamp,
+        tags: [],
+        type: 'TEST'
+      };
+
+      mockAxios.post.mockResolvedValue({ data: { id: expectedTestItemId } });
+
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+
+      const actualTestItemId = await sut.createItem(
+        expectedPostTestItemRequest.name,
+        expectedPostTestItemRequest.description,
+        expectedPostTestItemRequest.type,
+        expectedParentItem);
+
+      expect(mockAxios.post).toHaveBeenCalledWith(
+        `${expectedBaseUrl}/item/${expectedParentItem}`,
+        expectedPostTestItemRequest,
+        expectedRequestConfig);
 
       expect(actualTestItemId).toEqual(expectedTestItemId);
     });
