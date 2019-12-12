@@ -1,0 +1,30 @@
+{
+  "name": "hammertime-reportify",
+  "version": "1.0.0",
+  "description": "A simple client for ReportPortal.io",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "test:ci": "jest --collect-coverage",
+    "lint": "tslint --project ."
+  },
+  "publishConfig": {
+    "registry": "http://ihcmartifactory.es.ad.adp.com:8083/artifactory/api/npm/ihcm_localnpm/"
+  },
+  "author": "iHCM.EMEA.Team.Hammertime@adp.com",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/cucumber": "^6.0.0",
+    "@types/jest": "^24.0.23",
+    "@types/node": "^12.12.17",
+    "cucumber": "^6.0.5",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.2.0",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.3"
+  },
+  "dependencies": {
+    "axios": "^0.19.0"
+  }
+}
