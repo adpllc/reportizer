@@ -42,3 +42,21 @@ export interface IFinishTestRequest {
   status?: ReportPortalTestStatus;
   tags: string[];
 }
+
+export type LogLevel = 'error'
+  | 'warn'
+  | 'info'
+  | 'debug'
+  | 'trace'
+  | 'fatal'
+  | 'unknown';
+
+export interface ICreateLogRequest {
+    file?: {
+      name: string
+    };
+    item_id: string;
+    level: LogLevel;
+    message: string;
+    time: string | number;
+}
