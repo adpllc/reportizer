@@ -1,8 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { Status as CucumberStatus } from 'cucumber';
+import FormData from 'form-data';
 import {
   ICreateLogRequest,
   IFinishTestRequest,
+  INamedFileBuffer,
   IPostItemRequest,
   IReportPortalPostResponse,
   ItemType,
@@ -62,7 +64,7 @@ export default class ReportPortalClient {
     await axios.put(`${this.baseUrl}/item/${itemId}`, request, this.requestConfig);
   }
 
-  public async addLogToItem(itemId: string, level: LogLevel, message: string) {
+  public async addLogToItem(itemId: string, level: LogLevel, message: string, namedFileBuffer?: INamedFileBuffer) {
     const request: ICreateLogRequest = {
       item_id: itemId,
       level,
@@ -70,8 +72,22 @@ export default class ReportPortalClient {
       time: Date.now()
     };
 
+    const formData = new FormData();
+
+    formData.append(
+      'json_request_part',
+      JSON.stringify(request),
+    );
+    if (namedFileBuffer) {
+      formData.append(
+        'file',
+        namedFileBuffer.buffer,
+        namedFileBuffer.filename,
+      );
+    }
+
     return axios
-      .post<IReportPortalPostResponse>(`${this.baseUrl}/log`, request, this.requestConfig)
+      .post<IReportPortalPostResponse>(`${this.baseUrl}/log`, formData, this.requestConfig)
       .then(response => response.data.id);
   }
 }

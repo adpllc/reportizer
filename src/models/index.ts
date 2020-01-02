@@ -60,3 +60,8 @@ export interface ICreateLogRequest {
     message: string;
     time: string | number;
 }
+
+export interface INamedFileBuffer {
+  buffer: Buffer;
+  filename: string;
+}

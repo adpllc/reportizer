@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { Status } from 'cucumber';
+import FormData from 'form-data';
 import ReportPortalClient from '../src/';
-import { IFinishTestRequest, IPostItemRequest, ICreateLogRequest } from '../src/models';
+import { ICreateLogRequest, IFinishTestRequest, INamedFileBuffer, IPostItemRequest } from '../src/models';
 
 jest.mock('axios');
 jest.useFakeTimers();
@@ -210,6 +211,13 @@ describe('ReportPortalClient', () => {
         time: mockTimestamp,
       };
 
+      const expectedFormData = new FormData();
+
+      expectedFormData.append(
+        'json_request_part',
+        JSON.stringify(expectedLogRequest),
+      );
+
       mockAxios.post.mockResolvedValue({ data: { id: expectedLogItemId } });
 
       const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
@@ -221,9 +229,72 @@ describe('ReportPortalClient', () => {
       );
 
       expect(mockAxios.post).toHaveBeenCalledWith(
-        `${expectedBaseUrl}/log`, expectedLogRequest, expectedRequestConfig);
+        `${expectedBaseUrl}/log`, expect.any(FormData), expectedRequestConfig);
+
+      const actualFormData: FormData = mockAxios.post.mock.calls[0][1];
+
+      const actualFormDataSplitByBoundary = splitFormDataByItsUniqueBoundary(actualFormData);
+      const expectedFormDataSplitByBoundary = splitFormDataByItsUniqueBoundary(expectedFormData);
+
+      expect(actualFormDataSplitByBoundary).toEqual(expectedFormDataSplitByBoundary);
+
+      expect(actualLogItemId).toBe(expectedLogItemId);
+    });
+
+    it('should create a log with a file against a test item', async () => {
+      const expectedLogRequest: ICreateLogRequest = {
+        item_id: 'thisIsAnItemId',
+        level: 'info',
+        message: 'hello, this is a log message',
+        time: mockTimestamp,
+      };
+
+      const expectedFormData = new FormData();
+      const expectedImageBuffer = Buffer.from('This is an image, I swear.');
+      const expectedNamedFileBuffer: INamedFileBuffer = {
+        buffer: expectedImageBuffer,
+        filename: 'screenshot.png',
+      };
+
+      expectedFormData.append(
+        'json_request_part',
+        JSON.stringify(expectedLogRequest),
+      );
+      expectedFormData.append(
+        'file',
+        expectedNamedFileBuffer.buffer,
+        expectedNamedFileBuffer.filename,
+      );
+
+      mockAxios.post.mockResolvedValue({ data: { id: expectedLogItemId } });
+
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+
+      const actualLogItemId = await sut.addLogToItem(
+        expectedLogRequest.item_id,
+        expectedLogRequest.level,
+        expectedLogRequest.message,
+        expectedNamedFileBuffer,
+      );
+
+      expect(mockAxios.post).toHaveBeenCalledWith(
+        `${expectedBaseUrl}/log`, expect.any(FormData), expectedRequestConfig);
+
+      const actualFormData: FormData = mockAxios.post.mock.calls[0][1];
+
+      const actualFormDataSplitByBoundary = splitFormDataByItsUniqueBoundary(actualFormData);
+      const expectedFormDataSplitByBoundary = splitFormDataByItsUniqueBoundary(expectedFormData);
+
+      expect(actualFormDataSplitByBoundary).toEqual(expectedFormDataSplitByBoundary);
 
       expect(actualLogItemId).toBe(expectedLogItemId);
     });
   });
 });
+
+function splitFormDataByItsUniqueBoundary(formData: FormData) {
+  return formData
+    .getBuffer()
+    .toString()
+    .split(formData.getBoundary());
+}
