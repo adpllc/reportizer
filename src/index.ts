@@ -77,6 +77,7 @@ export default class ReportPortalClient {
     formData.append(
       'json_request_part',
       JSON.stringify(request),
+      { contentType: 'application/json' },
     );
     if (namedFileBuffer) {
       formData.append(
