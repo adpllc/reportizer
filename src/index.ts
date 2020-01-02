@@ -1,8 +1,17 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { Status as CucumberStatus } from 'cucumber';
-import { IFinishTestRequest, IPostItemRequest, IReportPortalPostResponse, ItemType, ReportPortalTestStatus } from './models';
+import {
+  ICreateLogRequest,
+  IFinishTestRequest,
+  IPostItemRequest,
+  IReportPortalPostResponse,
+  ItemType,
+  LogLevel,
+  ReportPortalTestStatus
+} from './models';
 
 export default class ReportPortalClient {
+
   private readonly statusMap: Map<CucumberStatus, ReportPortalTestStatus> = new Map([
     [CucumberStatus.PASSED, 'PASSED'],
     [CucumberStatus.FAILED, 'FAILED'],
@@ -38,7 +47,8 @@ export default class ReportPortalClient {
 
     const pathSuffix = (parentItemId && `/${parentItemId}`) || '';
 
-    return axios.post<IReportPortalPostResponse>(`${this.baseUrl}/item${pathSuffix}`, request, this.requestConfig)
+    return axios
+      .post<IReportPortalPostResponse>(`${this.baseUrl}/item${pathSuffix}`, request, this.requestConfig)
       .then(response => response.data.id);
   }
 
@@ -50,5 +60,18 @@ export default class ReportPortalClient {
     };
 
     await axios.put(`${this.baseUrl}/item/${itemId}`, request, this.requestConfig);
+  }
+
+  public async addLogToItem(itemId: string, level: LogLevel, message: string) {
+    const request: ICreateLogRequest = {
+      item_id: itemId,
+      level,
+      message,
+      time: Date.now()
+    };
+
+    return axios
+      .post<IReportPortalPostResponse>(`${this.baseUrl}/log`, request, this.requestConfig)
+      .then(response => response.data.id);
   }
 }
