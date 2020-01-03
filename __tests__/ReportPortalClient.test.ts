@@ -216,6 +216,7 @@ describe('ReportPortalClient', () => {
       expectedFormData.append(
         'json_request_part',
         JSON.stringify(expectedLogRequest),
+        { contentType: 'application/json' },
       );
 
       mockAxios.post.mockResolvedValue({ data: { id: expectedLogItemId } });
@@ -259,6 +260,7 @@ describe('ReportPortalClient', () => {
       expectedFormData.append(
         'json_request_part',
         JSON.stringify(expectedLogRequest),
+        { contentType: 'application/json' },
       );
       expectedFormData.append(
         'file',
