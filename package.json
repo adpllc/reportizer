@@ -15,7 +15,7 @@
     "registry": "http://ihcmartifactory.es.ad.adp.com:8083/artifactory/api/npm/ihcm_localnpm/"
   },
   "author": "iHCM.EMEA.Team.Hammertime@adp.com",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/cucumber": "^6.0.0",
     "@types/jest": "^24.0.23",
