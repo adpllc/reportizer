@@ -78,7 +78,7 @@ pipeline {
 
             steps {
                 withNpmrc([npmrcId: config.npmrcId, image: config.npmImage]) {
-                    sh "yarn publish --new-version ${packageJSON.version}"
+                    sh "npm publish"
                 }
             }
         }
