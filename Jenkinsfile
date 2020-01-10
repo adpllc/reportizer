@@ -4,7 +4,7 @@
 
 def config = [emailRecipients: 'mitch.maio@adp.com',
               email: 'ryan.perry@adp.com',
-              npmrcId: 'ea-shared-npmrc',
+              npmrcId: 'innerspace-npm-settings',
               npmImage: 'dtr.cdl.es.ad.adp.com/innerspace/node-ci:12.13.0',
               gitCredentials: 'ssh-ferris-wheel',
               name: 'Jenkins Build']
