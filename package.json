@@ -12,7 +12,7 @@
     "prepack": "tsc"
   },
   "publishConfig": {
-    "registry": "http://ihcmartifactory.es.ad.adp.com:8083/artifactory/api/npm/ihcm_localnpm/"
+    "registry": "https://artifactoryprod.es.ad.adp.com/artifactory/api/npm/innerspace-npm"
   },
   "author": "iHCM.EMEA.Team.Hammertime@adp.com",
   "license": "Apache-2.0",

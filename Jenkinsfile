@@ -1,60 +1,127 @@
-import groovy.json.JsonSlurper
+#!/usr/bin/env groovy
+
+@Library(['adp-jenkins']) _
+
+def config = [emailRecipients: 'mitch.maio@adp.com',
+              email: 'ryan.perry@adp.com',
+              npmrcId: 'ea-shared-npmrc',
+              npmImage: 'dtr.cdl.es.ad.adp.com/innerspace/node-ci:12.13.0',
+              gitCredentials: 'ssh-ferris-wheel',
+              name: 'Jenkins Build']
+
+def packageJSON
 
 pipeline {
     agent {
-        node {
-            label 'linux'
-            customWorkspace "w\\${JOB_NAME.replace("%2F", "_")}"
-        }
-    }
-
-    environment {
-        ARTIFACTORY_API_KEY   = credentials('JENKINS_ARTIFACTORY_API_KEY')
-        HTTP_PROXY            = "http://internal-default-proxy-lb1-19094279.us-east-1.elb.amazonaws.com:3128"
-        HTTPS_PROXY           = "http://internal-default-proxy-lb1-19094279.us-east-1.elb.amazonaws.com:3128"
-        CI                    = "true"
+        label 'docker'
     }
 
     options {
-        buildDiscarder(logRotator(daysToKeepStr: '7', numToKeepStr: '10'))
+        buildDiscarder(logRotator(numToKeepStr:'10'))
+        disableConcurrentBuilds()
     }
 
     stages {
-        stage('Install dependencies') {
+
+        stage('prepare-git') {
             steps {
-                sh "npm ci"
+                echo "Preparing git with the proper user info..."
+                sh "git config user.email ${config.email}"
+                sh "git config user.name ${config.name}"
+
+                echo "Cleaning up..."
+                sh 'git clean -fdx && git reset --hard'
+
+                script {
+                    packageJSON = readJSON file: 'package.json'
+                }
             }
         }
+
+        // No matter what, we're going to do a build...
+        stage('npm-build') {
+            steps {
+                echo "Branch is ${env.BRANCH_NAME}..."
+                withNpmrc([npmrcId: config.npmrcId, image: config.npmImage]) {
+                    sh "npm ci"
+                }
+            }
+        }
+
         stage('Checks') {
             parallel {
-                stage('Unit test') {
+                stage('lint') {
                     steps {
-                        sh "npm run test:ci"
+                        echo "Branch is ${env.BRANCH_NAME}..."
+                        withNpmrc([npmrcId: config.npmrcId, image: config.npmImage]) {
+                            sh "npm run lint"
+                        }
                     }
                 }
-                stage('Lint') {
+
+                stage('unit-test') {
                     steps {
-                        sh "npm run lint"
+                        echo "Branch is ${env.BRANCH_NAME}..."
+                        withNpmrc([npmrcId: config.npmrcId, image: config.npmImage]) {
+                            sh "npm run test:ci"
+                        }
                     }
                 }
             }
         }
-        stage('Build') {
-            steps {
-                sh "npm run build"
-            }
-        }
-        stage('Publish') {
+
+        // Master branch only accepts builds that are ready for release
+        stage('perform-publish') {
             when {
-                anyOf {
-                    branch "develop"
-                    branch "master"
-                }
+                branch 'master'
             }
 
             steps {
-                sh "npm publish"
+                withNpmrc([npmrcId: config.npmrcId, image: config.npmImage]) {
+                    sh "yarn publish --new-version ${packageJSON.version}"
+                }
             }
+        }
+
+        // After release, prepare for the next release by checking out the develop branch
+        // and updating the package.json for the next release
+        stage('prepare-for-next-release') {
+
+            when {
+                branch 'master'
+            }
+
+            steps {
+                echo "Preparing for next release"
+
+                script {
+                    sshagent([config.gitCredentials]) {
+                        sh 'git fetch origin +refs/heads/develop:refs/remotes/origin/develop'
+                        sh 'git pull origin develop'
+                        sh 'git checkout origin/develop'
+                    }
+
+                    withNpmrc([npmrcId: config.npmrcId, image: config.npmImage]) {
+                        sh 'npm version --no-git-tag-version patch'
+                    }
+
+                    sshagent([config.gitCredentials]) {
+                        sh 'git add package.json'
+
+                        packageJSON = readJSON file: './package.json'
+
+                        sh "git commit -m \"Preparing next release to be ${packageJSON.version}.\""
+                        sh 'git push origin HEAD:refs/heads/develop'
+
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sendEmail(config.emailRecipients)
         }
     }
 }
