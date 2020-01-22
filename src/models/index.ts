@@ -51,7 +51,9 @@ export type LogLevel = 'error'
   | 'fatal'
   | 'unknown';
 
-export interface ICreateLogRequest {
+export type ICreateLogRequest = ICreateLogRequestBody[];
+
+export interface ICreateLogRequestBody {
     file?: {
       name: string
     };

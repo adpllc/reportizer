@@ -204,12 +204,12 @@ describe('ReportPortalClient', () => {
 
   describe('addLogToItem', () => {
     it('should create a log against a test item', async () => {
-      const expectedLogRequest: ICreateLogRequest = {
+      const expectedLogRequest: ICreateLogRequest = [{
         item_id: 'thisIsAnItemId',
         level: 'info',
         message: 'hello, this is a log message',
         time: mockTimestamp,
-      };
+      }];
 
       const expectedFormData = new FormData();
 
@@ -224,15 +224,25 @@ describe('ReportPortalClient', () => {
       const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
 
       const actualLogItemId = await sut.addLogToItem(
-        expectedLogRequest.item_id,
-        expectedLogRequest.level,
-        expectedLogRequest.message
+        expectedLogRequest[0].item_id,
+        expectedLogRequest[0].level,
+        expectedLogRequest[0].message
       );
 
-      expect(mockAxios.post).toHaveBeenCalledWith(
-        `${expectedBaseUrl}/log`, expect.any(FormData), expectedRequestConfig);
-
       const actualFormData: FormData = mockAxios.post.mock.calls[0][1];
+
+      const expectedNoFileRequestConfig = {
+        ...expectedRequestConfig,
+        headers: {
+          ...expectedRequestConfig.headers,
+          'Content-Type': `multipart/form-data; boundary=${actualFormData.getBoundary()}`,
+        }
+      };
+
+      expect(mockAxios.post).toHaveBeenCalledWith(
+        `${expectedBaseUrl}/log`,
+        expect.any(FormData),
+        expectedNoFileRequestConfig);
 
       const actualFormDataSplitByBoundary = splitFormDataByItsUniqueBoundary(actualFormData);
       const expectedFormDataSplitByBoundary = splitFormDataByItsUniqueBoundary(expectedFormData);
@@ -243,29 +253,34 @@ describe('ReportPortalClient', () => {
     });
 
     it('should create a log with a file against a test item', async () => {
-      const expectedLogRequest: ICreateLogRequest = {
+      const expectedFileName = 'screenshot.png';
+
+      const expectedLogRequest: ICreateLogRequest = [{
         item_id: 'thisIsAnItemId',
         level: 'info',
         message: 'hello, this is a log message',
         time: mockTimestamp,
-      };
+        file: {
+          name: expectedFileName,
+        },
+      }];
 
       const expectedFormData = new FormData();
       const expectedImageBuffer = Buffer.from('This is an image, I swear.');
       const expectedNamedFileBuffer: INamedFileBuffer = {
         buffer: expectedImageBuffer,
-        filename: 'screenshot.png',
+        filename: expectedFileName,
       };
 
-      expectedFormData.append(
-        'json_request_part',
-        JSON.stringify(expectedLogRequest),
-        { contentType: 'application/json' },
-      );
       expectedFormData.append(
         'file',
         expectedNamedFileBuffer.buffer,
         expectedNamedFileBuffer.filename,
+      );
+      expectedFormData.append(
+        'json_request_part',
+        JSON.stringify(expectedLogRequest),
+        { contentType: 'application/json' },
       );
 
       mockAxios.post.mockResolvedValue({ data: { id: expectedLogItemId } });
@@ -273,16 +288,26 @@ describe('ReportPortalClient', () => {
       const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
 
       const actualLogItemId = await sut.addLogToItem(
-        expectedLogRequest.item_id,
-        expectedLogRequest.level,
-        expectedLogRequest.message,
+        expectedLogRequest[0].item_id,
+        expectedLogRequest[0].level,
+        expectedLogRequest[0].message,
         expectedNamedFileBuffer,
       );
 
-      expect(mockAxios.post).toHaveBeenCalledWith(
-        `${expectedBaseUrl}/log`, expect.any(FormData), expectedRequestConfig);
-
       const actualFormData: FormData = mockAxios.post.mock.calls[0][1];
+
+      const expectedFileRequestConfig = {
+        ...expectedRequestConfig,
+        headers: {
+          ...expectedRequestConfig.headers,
+          'Content-Type': `multipart/form-data; boundary=${actualFormData.getBoundary()}`,
+        }
+      };
+
+      expect(mockAxios.post).toHaveBeenCalledWith(
+        `${expectedBaseUrl}/log`,
+        expect.any(FormData),
+        expectedFileRequestConfig);
 
       const actualFormDataSplitByBoundary = splitFormDataByItsUniqueBoundary(actualFormData);
       const expectedFormDataSplitByBoundary = splitFormDataByItsUniqueBoundary(expectedFormData);
