@@ -17,6 +17,8 @@ jobs:
     - run: "npm run lint"
     - run: "npm run test:ci"
     - run: "npm run build"
+    - run: "npm publish"
+      if: github.ref == 'refs/heads/master'
+
       env:
         CI: true
-
