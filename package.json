@@ -1,6 +1,6 @@
 {
   "name": "reportizer",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "A simple client for ReportPortal.io (previously hammertime-reportify).",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,6 +12,14 @@
     "prepack": "tsc"
   },
   "author": "iHCM.EMEA.Team.Hammertime@adp.com",
+  "homepage": "https://github.com/adpllc/reportizer#README.md",
+  "bugs": {
+    "url": "https://github.com/adpllc/reportizer/issues"
+  },
+  "repository": {
+    "url": "https://github.com/adpllc/reportizer.git",
+    "type": "git"
+  },
   "license": "Apache-2.0",
   "devDependencies": {
     "@types/cucumber": "^6.0.0",
