@@ -1,6 +1,6 @@
 {
   "name": "reportizer",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "A simple client for ReportPortal.io (previously hammertime-reportify).",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
