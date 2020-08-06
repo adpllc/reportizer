@@ -54,16 +54,33 @@ export type LogLevel = 'error'
 export type ICreateLogRequest = ICreateLogRequestBody[];
 
 export interface ICreateLogRequestBody {
-    file?: {
-      name: string
-    };
-    item_id: string;
-    level: LogLevel;
-    message: string;
-    time: string | number;
+  file?: {
+    name: string
+  };
+  item_id: string;
+  level: LogLevel;
+  message: string;
+  time: string | number;
 }
 
 export interface INamedFileBuffer {
   buffer: Buffer;
   filename: string;
+}
+
+export type LaunchMode = 'DEFAULT' | 'DEBUG';
+
+export interface IStartLaunchRequest {
+  description?: string;
+  mode?: LaunchMode;
+  name: string;
+  start_time: string | number;
+  tags?: string[];
+}
+
+export interface IFinishLaunchRequest {
+  description?: string;
+  end_time: string | number;
+  status?: ReportPortalTestStatus;
+  tags?: string[];
 }

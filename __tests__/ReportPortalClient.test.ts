@@ -2,7 +2,13 @@ import axios from 'axios';
 import { Status } from 'cucumber';
 import FormData from 'form-data';
 import ReportPortalClient from '../src/';
-import { ICreateLogRequest, IFinishTestRequest, INamedFileBuffer, IPostItemRequest } from '../src/models';
+import {
+  ICreateLogRequest,
+  IFinishLaunchRequest,
+  IFinishTestRequest,
+  INamedFileBuffer,
+  IPostItemRequest,
+  IStartLaunchRequest } from '../src/models';
 
 jest.mock('axios');
 jest.useFakeTimers();
@@ -26,6 +32,55 @@ describe('ReportPortalClient', () => {
     .spyOn(Date, 'now')
     .mockReturnValue(mockTimestamp));
 
+  describe('startLaunch', () => {
+    it('should send a request to create a launch', async () => {
+      const expectedStartLaunchRequest: IStartLaunchRequest = {
+        name: 'SomeLaunch',
+        start_time: mockTimestamp,
+        description: 'A nice launch',
+        mode: 'DEFAULT',
+        tags: []
+      };
+
+      mockAxios.post.mockResolvedValue({ data: { number: 1, id: expectedLaunchId } });
+
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
+
+      const actualLaunchId = await sut.startLaunch(
+        expectedStartLaunchRequest.name,
+        expectedStartLaunchRequest.description,
+        expectedStartLaunchRequest.mode);
+
+      expect(mockAxios.post).toHaveBeenCalledWith(
+        `${expectedBaseUrl}/launch`, expectedStartLaunchRequest, expectedRequestConfig);
+
+      expect(actualLaunchId).toEqual(expectedLaunchId);
+    });
+  });
+
+  describe('finishLaunch', () => {
+    it('should send a request to finish a launch', async () => {
+      const expectedFinishLaunchRequest: IFinishLaunchRequest = {
+        status: 'PASSED',
+        end_time: mockTimestamp,
+        description: 'A nice launch',
+        tags: []
+      };
+
+      mockAxios.put.mockResolvedValue({ data: {} });
+
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
+
+      await sut.finishLaunch(
+        expectedLaunchId,
+        Status.PASSED,
+        expectedFinishLaunchRequest.description);
+
+      expect(mockAxios.put).toHaveBeenCalledWith(
+        `${expectedBaseUrl}/launch/${expectedLaunchId}/finish`, expectedFinishLaunchRequest, expectedRequestConfig);
+    });
+  });
+
   describe('createItem', () => {
     it('should send a request to create a root test item', async () => {
       const expectedPostTestItemRequest: IPostItemRequest = {
@@ -41,12 +96,13 @@ describe('ReportPortalClient', () => {
 
       mockAxios.post.mockResolvedValue({ data: { id: expectedTestItemId } });
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       const actualTestItemId = await sut.createItem(
         expectedPostTestItemRequest.name,
         expectedPostTestItemRequest.description,
-        expectedPostTestItemRequest.type);
+        expectedPostTestItemRequest.type,
+        expectedPostTestItemRequest.launch_id);
 
       expect(mockAxios.post).toHaveBeenCalledWith(
         `${expectedBaseUrl}/item`, expectedPostTestItemRequest, expectedRequestConfig);
@@ -69,12 +125,13 @@ describe('ReportPortalClient', () => {
 
       mockAxios.post.mockResolvedValue({ data: { id: expectedTestItemId } });
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       const actualTestItemId = await sut.createItem(
         expectedPostTestItemRequest.name,
         expectedPostTestItemRequest.description,
         expectedPostTestItemRequest.type,
+        expectedPostTestItemRequest.launch_id,
         expectedParentItem);
 
       expect(mockAxios.post).toHaveBeenCalledWith(
@@ -99,10 +156,13 @@ describe('ReportPortalClient', () => {
 
       mockAxios.post.mockResolvedValue({ data: { id: expectedTestItemId } });
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       const actualTestItemId = await sut.createItem(
-        expectedPostTestItemRequest.name, expectedPostTestItemRequest.description, expectedPostTestItemRequest.type);
+        expectedPostTestItemRequest.name,
+        expectedPostTestItemRequest.description,
+        expectedPostTestItemRequest.type,
+        expectedPostTestItemRequest.launch_id);
 
       expect(mockAxios.post).toHaveBeenCalledWith(
         `${expectedBaseUrl}/item`, expectedPostTestItemRequest, expectedRequestConfig);
@@ -119,7 +179,7 @@ describe('ReportPortalClient', () => {
         tags: []
       };
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       await sut.finishItem(expectedTestItemId, Status.PASSED);
 
@@ -134,7 +194,7 @@ describe('ReportPortalClient', () => {
         tags: []
       };
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       await sut.finishItem(expectedTestItemId, Status.FAILED);
 
@@ -149,7 +209,7 @@ describe('ReportPortalClient', () => {
         tags: []
       };
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       await sut.finishItem(expectedTestItemId, Status.SKIPPED);
 
@@ -164,7 +224,7 @@ describe('ReportPortalClient', () => {
         tags: []
       };
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       await sut.finishItem(expectedTestItemId, Status.PENDING);
 
@@ -178,7 +238,7 @@ describe('ReportPortalClient', () => {
         tags: []
       };
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       await sut.finishItem(expectedTestItemId, Status.UNDEFINED);
 
@@ -193,7 +253,7 @@ describe('ReportPortalClient', () => {
         tags: []
       };
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       await sut.finishItem(expectedTestItemId, Status.AMBIGUOUS);
 
@@ -221,7 +281,7 @@ describe('ReportPortalClient', () => {
 
       mockAxios.post.mockResolvedValue({ data: { id: expectedLogItemId } });
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       const actualLogItemId = await sut.addLogToItem(
         expectedLogRequest[0].item_id,
@@ -285,7 +345,7 @@ describe('ReportPortalClient', () => {
 
       mockAxios.post.mockResolvedValue({ data: { id: expectedLogItemId } });
 
-      const sut = new ReportPortalClient(expectedBaseUrl, expectedLaunchId, expectedAuthToken);
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
       const actualLogItemId = await sut.addLogToItem(
         expectedLogRequest[0].item_id,
