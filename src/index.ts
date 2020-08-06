@@ -3,11 +3,14 @@ import { Status as CucumberStatus } from 'cucumber';
 import FormData from 'form-data';
 import {
   ICreateLogRequestBody,
+  IFinishLaunchRequest,
   IFinishTestRequest,
   INamedFileBuffer,
   IPostItemRequest,
   IReportPortalPostResponse,
+  IStartLaunchRequest,
   ItemType,
+  LaunchMode,
   LogLevel,
   ReportPortalTestStatus
 } from './models';
@@ -26,19 +29,44 @@ export default class ReportPortalClient {
 
   constructor(
     private readonly baseUrl: string,
-    private readonly launchId: string,
     authToken: string) {
-      this.requestConfig = {
-        headers: {
-          Authorization: `Bearer ${authToken}`
-        }
-      };
-    }
+    this.requestConfig = {
+      headers: {
+        Authorization: `Bearer ${authToken}`
+      }
+    };
+  }
 
-  public createItem(testName: string, testDescription: string, testItemType: ItemType, parentItemId?: string) {
+  public startLaunch(name: string, description: string, mode: LaunchMode) {
+    const request: IStartLaunchRequest = {
+      name,
+      start_time: Date.now(),
+      description,
+      mode,
+      tags: []
+    };
+
+    return axios
+      .post<IReportPortalPostResponse>(`${this.baseUrl}/launch`, request, this.requestConfig)
+      .then(response =>  response.data.id);
+  }
+
+  public async finishLaunch(launchId: string, status: CucumberStatus, description: string) {
+    const request: IFinishLaunchRequest = {
+      status: this.statusMap.get(status) || undefined,
+      end_time: Date.now(),
+      description,
+      tags: []
+    };
+
+    await axios.put(`${this.baseUrl}/launch/${launchId}/finish`, request, this.requestConfig);
+  }
+
+  public createItem(
+    testName: string, testDescription: string, testItemType: ItemType, launchId: string, parentItemId?: string) {
     const request: IPostItemRequest = {
       description: testDescription,
-      launch_id: this.launchId,
+      launch_id: launchId,
       name: testName,
       parameters: [],
       retry: false,
