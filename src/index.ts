@@ -32,7 +32,8 @@ export default class ReportPortalClient {
     authToken: string) {
     this.requestConfig = {
       headers: {
-        Authorization: `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`,
+        Accept: 'application/json',
       }
     };
   }
