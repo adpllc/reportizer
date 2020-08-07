@@ -49,18 +49,33 @@ export default class ReportPortalClient {
 
     return axios
       .post<IReportPortalPostResponse>(`${this.baseUrl}/launch`, request, this.requestConfig)
-      .then(response =>  response.data.id);
+      .then(response => response.data.id);
   }
 
-  public async finishLaunch(launchId: string, status: CucumberStatus, description: string) {
+  public async finishLaunch(
+    { launchId, description, status }: { launchId: string, description?: string, status?: CucumberStatus }) {
+
     const request: IFinishLaunchRequest = {
-      status: this.statusMap.get(status) || undefined,
+      status: status ? this.statusMap.get(status) || undefined : undefined,
       end_time: Date.now(),
       description,
       tags: []
     };
 
     await axios.put(`${this.baseUrl}/launch/${launchId}/finish`, request, this.requestConfig);
+  }
+
+  public async stopLaunch(
+    { launchId, description, status }: { launchId: string; description?: string; status?: CucumberStatus; }) {
+
+    const request: IFinishLaunchRequest = {
+      status: status ? this.statusMap.get(status) || undefined : undefined,
+      end_time: Date.now(),
+      description,
+      tags: []
+    };
+
+    await axios.put(`${this.baseUrl}/launch/${launchId}/stop`, request, this.requestConfig);
   }
 
   public createItem(

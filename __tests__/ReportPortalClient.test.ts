@@ -72,13 +72,38 @@ describe('ReportPortalClient', () => {
 
       const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
 
-      await sut.finishLaunch(
-        expectedLaunchId,
-        Status.PASSED,
-        expectedFinishLaunchRequest.description);
+      await sut.finishLaunch({
+        launchId: expectedLaunchId,
+        description: expectedFinishLaunchRequest.description,
+        status: Status.PASSED,
+      });
 
       expect(mockAxios.put).toHaveBeenCalledWith(
         `${expectedBaseUrl}/launch/${expectedLaunchId}/finish`, expectedFinishLaunchRequest, expectedRequestConfig);
+    });
+  });
+
+  describe('stopLaunch', () => {
+    it('should send a request to force finish a launch', async () => {
+      const expectedFinishLaunchRequest: IFinishLaunchRequest = {
+        status: 'FAILED',
+        end_time: mockTimestamp,
+        description: 'A nice launch',
+        tags: []
+      };
+
+      mockAxios.put.mockResolvedValue({ data: {} });
+
+      const sut = new ReportPortalClient(expectedBaseUrl, expectedAuthToken);
+
+      await sut.stopLaunch({
+        launchId: expectedLaunchId,
+        description: expectedFinishLaunchRequest.description,
+        status: Status.FAILED,
+      });
+
+      expect(mockAxios.put).toHaveBeenCalledWith(
+        `${expectedBaseUrl}/launch/${expectedLaunchId}/stop`, expectedFinishLaunchRequest, expectedRequestConfig);
     });
   });
 
